@@ -2,7 +2,7 @@
 # @Author: jsgounot
 # @Date:   2018-11-21 10:39:38
 # @Last modified by:   jsgounot
-# @Last Modified time: 2019-05-10 10:51:54
+# @Last Modified time: 2019-05-24 16:29:00
 
 from Bio import SeqIO
 from Bio.Seq import Seq, MutableSeq

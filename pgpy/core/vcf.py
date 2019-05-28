@@ -2,8 +2,9 @@
 # @Author: jsgounot
 # @Date:   2018-11-21 10:04:35
 # @Last modified by:   jsgounot
-# @Last Modified time: 2019-01-15 12:53:37
+# @Last Modified time: 2019-05-24 16:23:17
 
+from copy import deepcopy
 from collections import Counter
 from itertools import chain, permutations
 
@@ -48,13 +49,19 @@ class VCFIterator() :
         return list(self.vcf.header.contigs)
 
     @property
-    def ploidies(self):
-        # pmod = self.modifier
-        # self.modifier = None
-        ploidies = {sample : len(alts) for sample, alts
-                    in self.fetch_first()[3].items()}
-        # self.modifier = pmod
-        return ploidies    
+    def ploidies(self):      
+        return {sample : len(alts) for sample, alts in self.fetch_first()[3].items()}
+
+    def seqcount(self, wo_mod=False, addRef=False) :
+        if wo_mod : 
+            modifier = self.modifier
+            self.modifier = None
+
+        values = sum(self.ploidies.values())
+        values = values + 1 if addRef else values
+
+        if wo_mod : self.modifier = modifier
+        return values
 
     def copy(self) :
         vcf = VCFIterator(self.fname)
@@ -62,22 +69,18 @@ class VCFIterator() :
         return vcf
 
     def add_modifier(self) :
-
         self.modifier = modifier
 
     def search_pos(self, contig, position, alts=False) :
-
         result = list(self.vcf.fetch(contig=contig, start=position-1, stop=position))
         if not result : raise PyVCFError("Variant not found at : %s %i" %(contig, position))
         return VCFIterator.dict_alts(result[0], self.modifier) if alts else result[0]
 
     def fetch_raw(self, * args, ** kwargs) :
-
         for variant in self.vcf.fetch(* args, ** kwargs) :
             yield variant
 
     def fetch(self, * args, ** kwargs) :
-
         show_last_posi = None
         show_last_contig = None
 
@@ -110,40 +113,34 @@ class VCFIterator() :
     # Custom modifier
 
     @staticmethod
-
     def fill_values(alts, site) :
         return tuple(alt or site.ref for alt in alts)
 
     @staticmethod
     def iupac_modifier(alts, site) :
-
         bref = site.ref[0]
         alts = tuple({alt[0] if alt is not None and alt != "*" else bref for alt in alts}) if len(alts) > 1 else tuple(alts)
         return VCFIterator.iupac_code.get(alts, alts)
 
     @staticmethod
     def no_indel_modifier(alts, site) :
-
-        print (alts)
-        exit()
+        #print (alts)
+        #exit()
 
         return tuple(alt[0] for alt in alts if alt)
 
     @staticmethod
     def only_variable_modifier(alts, site) :
-
         return tuple(alt for alt in alts if alt and alt != site.ref)
 
     @staticmethod
     def only_indel_modifier(alts, site) :
-
         return tuple(alt for alt in alts if alt and len(alt) != len(site.ref))
 
     # Usual functions
 
     @staticmethod
     def dict_alts(variant, modifier) :
-        
         data = {}
         
         for sample, alleles in variant.samples.items() :       
@@ -155,7 +152,6 @@ class VCFIterator() :
 
     @staticmethod
     def acount(variants, freq=False) :
-
         c = Counter(chain(variants.values()))
         if freq : c = {variant : count / sum(c.values()) for variant, count in c.items()}
-        return c
+        return c   

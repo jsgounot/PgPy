@@ -2,7 +2,7 @@
 # @Author: jsgounot
 # @Date:   2018-11-28 13:28:46
 # @Last modified by:   jsgounot
-# @Last Modified time: 2018-12-17 10:43:35
+# @Last Modified time: 2019-05-24 16:24:05
 
 import sys
 from collections import namedtuple
@@ -48,7 +48,7 @@ def apply_mp(vcf, fun, fetch_kwargs, * args, ncore=4, ** kwargs) :
     
     except Exception as e :
         print ("Error : An exception was raised in a process : %s" %(e.__class__.__name__ + " : " + str(e)))
-        return None
+        sys.exit()
 
 def apply_mp_contig(vcf, fun, * args, ncore=4, ** kwargs) :
     
