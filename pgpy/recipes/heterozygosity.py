@@ -2,7 +2,7 @@
 # @Author: jsgounot
 # @Date:   2019-06-18 17:58:16
 # @Last modified by:   jsgounot
-# @Last Modified time: 2019-06-18 17:59:54
+# @Last Modified time: 2019-06-18 18:15:05
 
 from pgpy import VCFIterator as VI
 from collections import defaultdict
@@ -12,6 +12,8 @@ def snp_modifier_ref(alts, site) :
     return tuple(alt[0] if alt else site.ref[0] for alt in alts)
 
 def homhet_window(vcf, wsize=10000, snp_modifier=True) :
+    
+    vcf = VI(vcf) if isinstance(vcf, str) else vcf
     data = defaultdict(lambda : defaultdict(lambda : defaultdict(lambda : defaultdict(int))))
         
     if snp_modifier :
@@ -32,6 +34,8 @@ def homhet_window(vcf, wsize=10000, snp_modifier=True) :
     
     df = pd.DataFrame(data)
     df["hom"] = df["hom"].fillna(0).astype(int)
-    df["het"] = df["het"].fillna(0).astype(int)
-    
+
+    if "het" in df.columns : df["het"] = df["het"].fillna(0).astype(int)
+    else : df["het"] = 0
+
     return df
